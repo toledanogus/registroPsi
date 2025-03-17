@@ -20,12 +20,12 @@ const ConfigScreen = () => {
   const [inputValues, setInputValues] = useState([]);
   const [datadb, setDatadb] = useState([]);
   const navigation = useNavigation();
+  
+  //Funciones
   const showSuccessAlert = () => {
     Alert.alert('Registrado correctamente', '');
   };
-
-  //Funciones
-
+  
   const handleChangeText = (text, index) => {
     const newValues = [...inputValues];
     newValues[index] = text;

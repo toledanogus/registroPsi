@@ -8,7 +8,7 @@ const db = SQLite.openDatabase(
 );
 
 
-// export const createTableRegistros = () => {
+// export const eliminarTodaLaBase = () => {
 //     SQLite.deleteDatabase(
 //       { name: 'registropsi.db', location: 'default' },
 //       () => {
@@ -19,6 +19,19 @@ const db = SQLite.openDatabase(
 //       }
 //     );
 //   };
+
+export const eliminarTablaRegistros = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'DELETE FROM registros;', // Elimina todos los registros de la tabla
+      [],
+      () => console.log('Todos los registros eliminados con éxito'),
+      error => console.error('Error al eliminar los registros', error)
+    );
+  });
+};
+
+
 export const createTable = () => {
   db.transaction(tx => {
     tx.executeSql(

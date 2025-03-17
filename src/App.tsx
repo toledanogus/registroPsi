@@ -5,6 +5,7 @@ import {Provider} from 'react-redux';
 import {store} from './store/store';
 import {NavigationContainer} from '@react-navigation/native';
 import {StackNavigator} from './routes/StackNavigator';
+import { styles } from './theme/theme';
 
 const App = () => {
   return (
