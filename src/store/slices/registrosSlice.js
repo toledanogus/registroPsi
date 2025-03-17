@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit'
 export const registrosSlice = createSlice({
 name: 'registros',
   initialState:{
-    botones: 1,
+    botones: 0,
     nombresBotones: [],
 
   },
