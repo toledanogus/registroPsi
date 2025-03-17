@@ -18,6 +18,7 @@ import {
 import {styles} from '../theme/theme';
 import Sound from 'react-native-sound';
 
+
 const HomeScreen = () => {
   //Variables
   const navigation = useNavigation();
@@ -51,20 +52,29 @@ const HomeScreen = () => {
   };
 
   const playSound = () => {
-    const sound = new Sound(
-      require('../assets/click.wav'),
-      Sound.MAIN_BUNDLE,
-      error => {
-        if (error) {
-          console.log('Error al cargar el sonido', error);
-          return;
+    console.log('playSound fue invocado');
+    // Asegúrate de que la categoría está configurada antes de crear el sonido
+    Sound.setCategory('Playback', true);
+  
+    const sound = new Sound(require('../assets/sound_click.mp3'), error => {
+      if (error) {
+        console.log('Error al cargar el sonido:', error);
+        Alert.alert('Error', 'No se pudo cargar el sonido.');
+        return;
+      }
+  
+      console.log('Sonido cargado correctamente.');
+      sound.play(success => {
+        if (!success) {
+          console.log('Error al reproducir el sonido.');
         }
-        sound.play(() => {
-          sound.release(); // Libera el recurso una vez que el sonido termina
-        });
-      },
-    );
+        sound.release();
+      });
+    });
   };
+  
+  
+  
 
   //Efectos
 
@@ -88,6 +98,7 @@ const HomeScreen = () => {
       <View style={styles.container}>
         {datadb[0]?.nombreBotones.split(',').map((elemento, index) => (
           <Pressable
+          android_disableSound={true}
             style={({pressed}) => [
               styles[`boton${index}`], // Estilo fijo del botón
               {

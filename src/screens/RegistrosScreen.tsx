@@ -1,11 +1,21 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, ScrollView, StyleSheet, Pressable, Alert, Linking} from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Pressable,
+  Alert,
+} from 'react-native';
 import {eliminarTablaRegistros, getRegistros} from '../dataBases/configBotones';
 import {styles} from '../theme/theme';
+import RNFS from 'react-native-fs'; // Para manejar archivos
+import Share from 'react-native-share'; // Para compartir archivos
+
 const RegistrosScreen = () => {
   const [regs, setRegs] = useState([]);
 
-  //Funciones
+  // Funciones
 
   const createTwoButtonAlert = () =>
     Alert.alert('Eliminar todos los registros', '¿Estás seguro?', [
@@ -17,22 +27,51 @@ const RegistrosScreen = () => {
       {text: 'OK', onPress: eliminarTablaRegistros},
     ]);
 
-    const openWhatsApp = (regs) => {
-      // Genera el mensaje con el formato especificado
-      const mensaje = regs
-        .map((reg) => `${reg.dayOfWeek} ${reg.time} ${reg.categoria}`)
-        .join("\n"); // Separa cada registro con un salto de línea
+    const shareRegistrosAsTxt = async () => {
+      try {
+        // Verifica que haya registros
+        if (!regs || regs.length === 0) {
+          Alert.alert("Error", "No hay registros para compartir.");
+          return;
+        }
     
-      const telefono = "5615976147"; // Incluye el código de país y número de WhatsApp
-      const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+        // Genera el contenido del archivo .txt
+        const fileContent = regs
+          .map((reg) => {
+            // Reemplaza caracteres no ASCII por sus equivalentes ASCII
+            const text = `${reg.dayOfWeek} ${reg.time} ${reg.categoria}`;
+            return text
+              .replace(/[“”]/g, '"') // Reemplaza comillas tipográficas por comillas simples
+              .replace(/[‘’]/g, "'") // Reemplaza comillas tipográficas por comillas simples
+              .replace(/[–—]/g, "-") // Reemplaza guiones especiales por guiones simples
+              .replace(/ñ/g, "n") // Normaliza la ñ
+              .replace(/[¿¡]/g, ""); // Elimina caracteres especiales como ¿ y ¡
+          })
+          .join("\n");
     
-      // Abre WhatsApp con el mensaje
-      Linking.openURL(url).catch((err) =>
-        console.error("Error al abrir WhatsApp:", err)
-      );
+        // Define la ruta del archivo
+        const filePath = `${RNFS.DocumentDirectoryPath}/registros.txt`;
+    
+        // Escribe el archivo en el sistema con codificación UTF-8
+        await RNFS.writeFile(filePath, fileContent, 'utf8');
+    
+        // Comparte el archivo por WhatsApp
+        const shareOptions = {
+          title: 'Compartir registros',
+          message: 'Aquí están tus registros:', // Mensaje opcional
+          url: `file://${filePath}`, // Ruta del archivo
+          type: 'text/plain', // Tipo de archivo
+          social: Share.Social.WHATSAPP, // Compartir directamente en WhatsApp
+        };
+    
+        await Share.open(shareOptions);
+      } catch (error) {
+        console.error("Error al generar o compartir el archivo:", error);
+        Alert.alert("Error", "No se pudo generar o compartir el archivo.");
+      }
     };
 
-    //Efectos
+  // Efectos
 
   useEffect(() => {
     getRegistros(data => {
@@ -52,7 +91,7 @@ const RegistrosScreen = () => {
             padding: 30,
           },
         ]}>
-        {/* <Text style={{fontSize: 16, fontWeight: 'bold'}}>Registros:</Text> */}
+        {/* Lista de registros */}
         {regs.map((reg, index) => (
           <View key={index}>
             <Text>
@@ -60,45 +99,49 @@ const RegistrosScreen = () => {
             </Text>
           </View>
         ))}
+
+        {/* Botón para eliminar registros */}
         <Pressable
           style={({pressed}) => [
-            styles[`boton1`], // Estilo fijo del botón
+            styles[`boton1`],
             {
               backgroundColor: pressed
                 ? '#d2d2d2'
                 : StyleSheet.flatten(styles[`boton1`]).backgroundColor,
               shadowColor: '#000',
               shadowOffset: pressed
-                ? {width: 0, height: 8} // Sombra más pronunciada al presionar
+                ? {width: 0, height: 8}
                 : {width: 0, height: 1},
-              shadowOpacity: pressed ? 0.9 : 0.1, // Intensidad de la sombra
-              shadowRadius: pressed ? 6 : 3, // Radio de sombra más grande al presionar
-              elevation: pressed ? 15 : 5, 
-              alignSelf:'center'// Sombra para Android
+              shadowOpacity: pressed ? 0.9 : 0.1,
+              shadowRadius: pressed ? 6 : 3,
+              elevation: pressed ? 15 : 5,
+              alignSelf: 'center',
             },
           ]}
           onPress={createTwoButtonAlert}>
           <Text>Eliminar todo</Text>
         </Pressable>
+
+        {/* Botón para compartir registros por WhatsApp */}
         <Pressable
           style={({pressed}) => [
-            styles[`boton2`], // Estilo fijo del botón
+            styles[`boton2`],
             {
               backgroundColor: pressed
                 ? '#d2d2d2'
                 : StyleSheet.flatten(styles[`boton2`]).backgroundColor,
               shadowColor: '#000',
               shadowOffset: pressed
-                ? {width: 0, height: 8} // Sombra más pronunciada al presionar
+                ? {width: 0, height: 8}
                 : {width: 0, height: 1},
-              shadowOpacity: pressed ? 0.9 : 0.1, // Intensidad de la sombra
-              shadowRadius: pressed ? 6 : 3, // Radio de sombra más grande al presionar
-              elevation: pressed ? 15 : 5, 
-              alignSelf:'center'// Sombra para Android
+              shadowOpacity: pressed ? 0.9 : 0.1,
+              shadowRadius: pressed ? 6 : 3,
+              elevation: pressed ? 15 : 5,
+              alignSelf: 'center',
             },
           ]}
-          onPress={openWhatsApp}>
-          <Text>Enviar por Whatsapp</Text>
+          onPress={shareRegistrosAsTxt}>
+          <Text>Compartir Registros</Text>
         </Pressable>
       </View>
     </ScrollView>

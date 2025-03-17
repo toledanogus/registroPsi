@@ -7,6 +7,9 @@ import {NavigationContainer} from '@react-navigation/native';
 import {StackNavigator} from './routes/StackNavigator';
 import { styles } from './theme/theme';
 
+
+
+
 const App = () => {
   return (
     <NavigationContainer>
